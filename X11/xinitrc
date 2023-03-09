@@ -1,0 +1,6 @@
+#!/bin/sh
+setxkbmap dvorak
+xset r rate 660 60
+~/Source/autorandr/autorandr.py -c
+qtile start
+

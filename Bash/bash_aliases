@@ -1,0 +1,22 @@
+alias ls='ls -lhA --color=auto'
+alias n='nvim'
+alias l='ls'
+alias c='cd'
+
+# Explicitly exit chromium before shutdown so that the
+# restore page bubble doesn't appear.
+alias reboot='pkill -o chromium && sudo reboot'
+alias shutdown='pkill -o chromium && sudo shutdown'
+alias poweroff='pkill -o chromium && sudo poweroff'
+alias halt='pkill -o chromium && sudo halt'
+alias sleep='sudo sleep'
+
+# I set DNS and Interface (wlan0 as I use wifi) here
+# because for some reason it doesn't work in the config.toml
+# file.
+# TODO: Randomly choose one about 20 or 30 VPN servers I choose.
+# Transmission is available at 127.0.0.1:9091, in a `chromium_vpn` window.
+alias vopono_exec='vopono -v exec --dns 8.8.8.8 --interface wlan0 --server ireland'
+alias transmission_vpn='vopono_exec -k -f 9001 "sudo -H -u transmission transmission-daemon -a *.*.*.*"'
+alias chromium_vpn='vopono_exec "chromium --ozone-platform=wayland --user-data-dir=/tmp/chromium-vpn-dir"'
+

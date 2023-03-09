@@ -1,0 +1,94 @@
+#
+# ~/.bashrc
+#
+
+check_if_dir_is_git_root () {
+  # Return true if the given directory contains a .git directory.
+  # The input should not have a trailing /.
+  for d in "$1"/.*/ ; do
+    if [ "$d" = "$1/.git/" ] ; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+get_git_repo_prefix () {
+  # Check if there is a git directory at some point in the path
+  # to root. Then return the path prior to the git repo.
+  check_if_in_git_repo prefix suffix
+  echo "$prefix"
+}
+
+get_git_repo_suffix () {
+  # Check if there is a git directory at some point in the path
+  # to root. Then return the path within the git repo.
+  check_if_in_git_repo prefix suffix
+  echo "$suffix"
+}
+
+get_git_current_branch () {
+  # Echo the current branch only. Make sure to not
+  # show an error if not in a git repo.
+  local gitbranchvar="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+  if [ ! -z "$gitbranchvar" ]; then
+    echo " ($gitbranchvar)"
+  fi
+}
+
+check_if_in_git_repo () {
+  # Check if there is a git directory at some point in the path
+  # to root. Expects a prefix and suffix argument that will be
+  # that will be set to non-git and git portions of the path.
+  # (Will only set prefix if not in a git repo).
+  local prefixvar=""
+  local __prefix=$1
+  local suffixvar=""
+  local __suffix=$2
+  currentdir=$PWD
+  currentdir="${currentdir:1}"  # Remove the leading /
+  IFS='/' read -ra DIRS <<< "$currentdir"
+  declare dirtocheck=""
+  declare previousdir=""
+  for i in "${DIRS[@]}"; do
+    previousdir="$dirtocheck"
+    dirtocheck="$dirtocheck/$i"
+    if check_if_dir_is_git_root "$dirtocheck"; then
+      prefixvar="$previousdir/"
+      suffixvar=${PWD#"$prefixvar"}
+      break
+    fi
+  done
+  
+  if [ ! -z "$suffixvar" ] ; then
+    eval $__prefix="'$prefixvar'"
+    eval $__suffix="'$suffixvar'"
+    return 0
+  fi
+
+  eval $__prefix="'/$currentdir'"
+  eval $__suffix="''"
+  return 1
+}
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# Set the terminal prompt to "[username:path]$ "
+# and set window title to current directory.
+# NOTE: The escape characters are necessary to prevent
+# BASH from getting confused about the length of the
+# prompt: https://tldp.org/HOWTO/Bash-Prompt-HOWTO/nonprintingchars.html
+PS1="\[\033];\w\a\][\u:\[\033[1;34m\]\$(get_git_repo_prefix)\[\033[1;31m\]\$(get_git_repo_suffix)\$(get_git_current_branch)\[\033[0m\]]$ "
+
+# Set history format and max lines.
+HISTTIMEFORMAT='%F %T > '
+HISTSIZE=20000
+HISTFILESIZE=20000
+
+# Load the .bash_aliases file.
+if [ -f ~/.bash_aliases ]; then
+  . ~/.bash_aliases
+fi
+

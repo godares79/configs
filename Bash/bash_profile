@@ -1,0 +1,20 @@
+#
+# ~/.bash_profile
+#
+
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+
+# Figure out if this is a remote SSH session.
+if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+  SESSION_TYPE=remote/ssh
+else
+  case $(ps -o comm= -p "$PPID") in
+    sshd|*/sshd) SESSION_TYPE=remote/ssh;;
+  esac
+fi
+
+# If not in a SSH session, startup qtile on login.
+if [ -z "$SESSION_TYPE" ]; then
+  qtile start -b wayland &
+fi
+
